@@ -2,7 +2,7 @@
 
 Python package to compress Gaussian Splats with [Self-Organizing Gaussians](https://github.com/fraunhoferhhi/Self-Organizing-Gaussians)
 
-Code forked from gsplat's [png_compression](https://github.com/nerfstudio-project/gsplat/blob/main/gsplat/compression/png_compression.py) module and produces a compressed bundle suitable for rendering with PlayCanvas' SuperSplat.
+Code forked from gsplat's [png_compression](https://github.com/nerfstudio-project/gsplat/blob/main/gsplat/compression/png_compression.py) module and produces a compressed bundle suitable for ~~rendering with PlayCanvas' SuperSplat~~ VRChat.
 
 ## Installation
 
@@ -15,6 +15,7 @@ pip install torch --index-url https://download.pytorch.org/whl/cu126
 pip install cupy-cuda12x
 pip install torchpq
 pip install git+https://github.com/fraunhoferhhi/PLAS.git
+pip install OpenEXR
 pip install -e ./sogs
 ```
 
