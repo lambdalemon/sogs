@@ -111,6 +111,7 @@ def postprocess_splats(splats, centroids):
     n_sidelen = int(n_gs**0.5)
     for k in splats.keys() - ["shN_centroids"]:
         splats[k] = splats[k].reshape((n_sidelen, n_sidelen, -1))
+    splats["shN_centroids"] = splats["shN_centroids"][::-1]
 
     return splats
 
