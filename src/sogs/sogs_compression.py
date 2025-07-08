@@ -49,7 +49,7 @@ def unity_vec3_serialize(x):
     return {k:float(v) for k,v in zip("xyz", x)}
 
 
-def preprocess_splats(splats):
+def preprocess_splats(splats, include_sh):
     means = splats["means"]
 
     scales = splats["scales"] * np.log2(np.e)
@@ -68,14 +68,20 @@ def preprocess_splats(splats):
     opacities = sigmoid(splats["opacities"]).reshape(n_gs, -1)
     colors = torch.cat((sh0, opacities), dim=1)
 
-    shN = splats["shN"].clamp(-6.0, 6.0).reshape(n_gs, -1)
-    kmeans = KMeans(n_clusters=2**14, distance="manhattan", verbose=True)
-    labels = kmeans.fit(shN.permute(1, 0).contiguous())
-    centroids = kmeans.centroids.permute(1, 0)
-    shN_min = torch.min(centroids)
-    shN_max = torch.max(centroids)
-    centroids = (centroids - shN_min) / (shN_max - shN_min)
-    centroids = centroids.reshape(centroids.shape[0], -1, 3)
+    if include_sh:
+        shN = splats["shN"].clamp(-6.0, 6.0).reshape(n_gs, -1)
+        kmeans = KMeans(n_clusters=2**14, distance="manhattan", verbose=True)
+        labels = kmeans.fit(shN.permute(1, 0).contiguous())
+        centroids = kmeans.centroids.permute(1, 0)
+        shN_min = torch.min(centroids)
+        shN_max = torch.max(centroids)
+        centroids = (centroids - shN_min) / (shN_max - shN_min)
+        centroids = centroids.reshape(centroids.shape[0], -1, 3)
+    else:
+        labels = torch.zeros(n_gs, 1).cuda()
+        centroids = torch.zeros(2**14, 15, 3).cuda()
+        shN_min = 0
+        shN_max = 0
 
     splats = {
         "means": means,
@@ -116,7 +122,7 @@ def postprocess_splats(splats, centroids):
     return splats
 
 
-def run_compression(compress_dir: str, splats: Dict[str, Tensor]) -> None:
+def run_compression(compress_dir: str, splats: Dict[str, Tensor], include_sh: bool) -> None:
     """Run compression
 
     Args:
@@ -133,7 +139,7 @@ def run_compression(compress_dir: str, splats: Dict[str, Tensor]) -> None:
             f"Warning: Number of Gaussians was not square. Removed {n_crop} Gaussians."
         )
 
-    splats, centroids, meta = preprocess_splats(splats)
+    splats, centroids, meta = preprocess_splats(splats, include_sh)
 
     splats = sort_splats(splats)
 
